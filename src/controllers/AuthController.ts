@@ -1,10 +1,11 @@
 import { Request, Response } from "express";
-import { UserRegisterDto } from "src/dto/user.dto";
+import { UserRegisterDto, UserUpdateProfileDto } from "src/dto/user.dto";
 import { Friendship, User } from "../entity/user.entity";
 import { Message } from "src/dto/message.dto";
 import * as bcrypt from "bcryptjs";
 import * as jwt from "jsonwebtoken";
 import { In, Not } from "typeorm";
+import { uploadFile } from "./Cloudinary.controller";
 
 export const register = async (req: Request, res: Response) => {
   const { email, password, registerType }: UserRegisterDto = req.body;
@@ -79,6 +80,8 @@ export const login = async (req: Request, res: Response) => {
 
     const foundedUser = await User.findOne({ where: { email } });
 
+    console.log({ foundedUser });
+
     if (!foundedUser) {
       return res.json({
         message: "Bu foydalanuvchi topilmadi",
@@ -86,12 +89,11 @@ export const login = async (req: Request, res: Response) => {
       });
     }
 
+    console.log({ foundedUser });
+
     if (foundedUser.registerType === "local") {
-      // local ro'yxatdan o'tgan, password bo'lishi kerak
-      const isMatch = await bcrypt.compare(
-        password,
-        foundedUser.password as string
-      );
+      if (!foundedUser?.password) return;
+      const isMatch = await bcrypt.compare(password, foundedUser.password);
 
       if (!isMatch) {
         return res.json({
@@ -233,6 +235,92 @@ export const getOneUser = async (req: Request, res: Response) => {
     const user = await User.find({ where: { id: Number(userId) } });
 
     return res.json(user);
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "Server error", error: error.message });
+  }
+};
+
+export const updateProfile = async (req: Request, res: Response) => {
+  try {
+    const user = req.user;
+
+    const { name, password, oldPassword }: UserUpdateProfileDto = req.body;
+
+    if (name) {
+      const updatedUser = await User.update(user.id, { name });
+
+      return res.json(updatedUser);
+    } else if (password && oldPassword) {
+      const updatedUser = await User.findOne({ where: { id: user.id } });
+
+      if (!updatedUser || !updatedUser.password) {
+        throw new Error("This user not found or he doesn't have password");
+      }
+      const isMatchOldPassword = await bcrypt.compare(
+        oldPassword,
+        updatedUser?.password
+      );
+
+      if (!isMatchOldPassword) {
+        return res.json({ message: "Siz kiritgan eski parol xato" });
+      }
+
+      const hash = await bcrypt.hash(password, 12);
+
+      const updatedUserPassword = await User.update(user.id, {
+        password: hash,
+      });
+
+      return res.json(updatedUserPassword);
+    }
+
+    return res.json({ message: "Iltimos malumotlarni toliq kiriting" });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "Server error", error: error.message });
+  }
+};
+
+export const uploadProfileImage = async (req: Request, res: Response) => {
+  try {
+    const user = req.user;
+
+    const image = req.file;
+    console.log(req.file);
+
+    if (!image) {
+      return res.json({ message: "Iltimos rasm kiriting" });
+    }
+
+    const imageUrl = (await uploadFile(image)).result.secure_url;
+    const updatedUser = await User.update(user.id, {
+      image: imageUrl || "",
+    });
+
+    return res.json(updatedUser);
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "Server error", error: error.message });
+  }
+};
+
+export const deleteProfileImage = async (req: Request, res: Response) => {
+  try {
+    const user = req.user;
+
+    if (!user?.image) {
+      return res.json({ message: "Sizda rasm mavud emas" });
+    }
+
+    const updatedUser = await User.update(user.id, {
+      image: "",
+    });
+
+    return res.json(updatedUser);
   } catch (error) {
     return res
       .status(500)

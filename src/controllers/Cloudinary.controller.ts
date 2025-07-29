@@ -11,7 +11,17 @@ cloudinary.config({
 
 export const uploadFile = async (file: Express.Multer.File) => {
   try {
-    const result = await cloudinary.uploader.upload(file.path);
+    let result;
+    if (file.filename === "recording.webm") {
+      result = await cloudinary.uploader.upload(file.path, {
+        folder: "voices",
+        resource_type: "auto",
+      });
+    } else {
+      result = await cloudinary.uploader.upload(file.path, {
+        folder: "images",
+      });
+    }
 
     return { result };
   } catch (err) {

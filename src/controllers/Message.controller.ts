@@ -42,11 +42,39 @@ export const getMessages = async (req: Request, res: Response) => {
         new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
     );
 
-    return res.json(sortedMessages);
+    res.json(sortedMessages);
+    return sortedMessages;
   } catch (err) {
     console.log(err);
     return res
       .status(500)
       .json({ message: "Xabarlarni olishda xatolik", error: err });
+  }
+};
+
+export const deleteMessages = async (friendshipId: number) => {
+  try {
+    const messages = await Message.delete({ friendship: { id: friendshipId } });
+    return messages;
+  } catch (err) {
+    console.log(err);
+    return { message: "Xabarlarni olishda xatolik", error: err };
+  }
+};
+
+export const updateMessageRead = async (req: Request, res: Response) => {
+  try {
+    const result = await getMessages(req, res);
+    const messages = Array.isArray(result) ? result : [];
+
+    for (const message of messages) {
+      if (!message?.isRead) {
+        await Message.update({ id: message?.id }, { isRead: true });
+      }
+    }
+    return messages;
+  } catch (err) {
+    console.log(err);
+    return { message: "Xabarlarni olishda xatolik", error: err };
   }
 };

@@ -3,3 +3,9 @@ export class UserRegisterDto {
   password: string;
   registerType: string;
 }
+
+export class UserUpdateProfileDto {
+  password?: string;
+  oldPassword?: string;
+  name?: string;
+}

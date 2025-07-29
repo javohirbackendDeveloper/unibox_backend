@@ -3,9 +3,11 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinTable,
   ManyToMany,
   ManyToOne,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
@@ -45,6 +47,9 @@ export class User extends BaseEntity {
   @OneToMany(() => Message, (message) => message.sender)
   messages: Message[];
 
+  @OneToMany(() => TextEditor, (textEditor) => textEditor.owner)
+  textEditors: TextEditor[];
+
   @CreateDateColumn()
   createdAt: Date;
 
@@ -62,6 +67,9 @@ export class Friendship extends BaseEntity {
 
   @ManyToOne(() => User, (user) => user.receivedFriend)
   user2?: User;
+
+  @Column({ default: false })
+  isRead?: boolean;
 
   @Column({ default: false })
   isConfirmed?: boolean;
@@ -96,9 +104,30 @@ export class Message extends BaseEntity {
   @Column({ nullable: true })
   voice?: string;
 
+  @Column({ default: false })
+  isRead?: boolean;
+
   @CreateDateColumn()
   createdAt: Date;
 
   @UpdateDateColumn()
   updatedAt: Date;
+}
+
+@Entity()
+export class TextEditor extends BaseEntity {
+  @PrimaryGeneratedColumn("uuid")
+  id: string;
+
+  @Column()
+  title: string;
+
+  @Column("text", { nullable: true })
+  file: string;
+
+  @Column()
+  owner: string;
+
+  @Column("simple-array", { nullable: true })
+  collaborators: string[];
 }

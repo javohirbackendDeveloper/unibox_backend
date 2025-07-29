@@ -17,13 +17,16 @@ export const createMessageService = async ({
   file,
 }: CreateMessagePayload) => {
   try {
-    console.log({ file });
-
     let imageUrl: string | null = null;
+    let voiceUrl: string | null = null;
 
     if (file) {
       const { result } = await uploadFile(file);
-      imageUrl = result.secure_url;
+      if (file.filename === "recording.webm") {
+        voiceUrl = result.secure_url;
+      } else {
+        imageUrl = result.secure_url;
+      }
     }
 
     const sender = await User.findOneBy({ id: senderId });
@@ -33,6 +36,7 @@ export const createMessageService = async ({
       text: text || "",
       image: imageUrl || "",
       sender,
+      voice: voiceUrl || "",
       friendship: friendship,
     });
 
