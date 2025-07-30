@@ -18,7 +18,7 @@ const app = express();
 app.use(express.json());
 app.use(
   cors({
-    origin: "https://unibox-frontend-spxn.vercel.app/",
+    origin: "https://unibox-frontend-spxn.vercel.app",
     credentials: true,
   })
 );
@@ -29,7 +29,7 @@ app.use(cookieParser());
 const server = http.createServer(app);
 export const io = new Server(server, {
   cors: {
-    origin: "https://unibox-frontend-spxn.vercel.app/",
+    origin: "https://unibox-frontend-spxn.vercel.app",
     methods: ["GET", "POST", "PATCH", "DELETE"],
   },
 });
