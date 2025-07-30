@@ -5,7 +5,7 @@ export async function main() {
   try {
     const connection = await createConnection({
       type: "postgres",
-      host: "localhost",
+      host: process.env.HOST,
       port: 5432,
       username: "postgres",
       password: process.env.DATABASE_PASSWORD,
