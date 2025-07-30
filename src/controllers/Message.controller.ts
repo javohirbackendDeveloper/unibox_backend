@@ -7,7 +7,9 @@ import { createMessageService } from "../services/Message.service";
 export const createMessage = async (req: Request, res: Response) => {
   try {
     const sender = req.user;
+    console.log({ data: req.body, user: sender });
     const { text, friendship }: FriendsMessageDto = req.body;
+
     const file = req.file;
 
     const message = await createMessageService({
