@@ -23,8 +23,6 @@ app.use(
   })
 );
 app.use(cookieParser());
-// database
-main();
 
 // server with socket.io
 
@@ -37,6 +35,20 @@ export const io = new Server(server, {
 });
 
 setupSocket(io);
+
+const PORT = process.env.PORT || 3000;
+
+// database
+(async () => {
+  try {
+    await main.initialize();
+    console.log("Database connected successfully");
+  } catch (error) {
+    console.error("Database connection failed:", error);
+    process.exit(1);
+  }
+})();
+
 // routers
 
 app.use("/api/auth", authRouter);
@@ -44,7 +56,6 @@ app.use("/api/friendship", friendshipRouter);
 app.use("/api/message", messageRouter);
 app.use("/api/zego", zegoRouter);
 
-const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log("Server is running on " + PORT);
 });
