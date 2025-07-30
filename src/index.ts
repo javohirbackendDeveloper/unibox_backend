@@ -18,7 +18,10 @@ const app = express();
 app.use(express.json());
 app.use(
   cors({
-    origin: "https://unibox-frontend-spxn.vercel.app",
+    origin: [
+      "https://unibox-frontend-spxn.vercel.app",
+      "http://localhost:5173",
+    ],
     credentials: true,
   })
 );
