@@ -20,14 +20,22 @@ export const register = async (req: Request, res: Response) => {
     } as Message);
   }
 
-  let hashedPassword;
   if (registerType === "local") {
-    hashedPassword = await bcrypt.hash(password, 12);
+    const hashedPassword = await bcrypt.hash(password, 12);
+    const createdUser = await User.create({
+      email,
+      registerType,
+      password: hashedPassword,
+    }).save();
+
+    return res.json({
+      ...createdUser,
+    });
   }
+
   const createdUser = await User.create({
     email,
     registerType,
-    password: hashedPassword,
   }).save();
 
   return res.json({
@@ -80,8 +88,6 @@ export const login = async (req: Request, res: Response) => {
 
     const foundedUser = await User.findOne({ where: { email } });
 
-    console.log({ foundedUser });
-
     if (!foundedUser) {
       return res.json({
         message: "Bu foydalanuvchi topilmadi",
@@ -89,10 +95,10 @@ export const login = async (req: Request, res: Response) => {
       });
     }
 
-    console.log({ foundedUser });
-
     if (foundedUser.registerType === "local") {
       if (!foundedUser?.password) return;
+      console.log();
+
       const isMatch = await bcrypt.compare(password, foundedUser.password);
 
       if (!isMatch) {
